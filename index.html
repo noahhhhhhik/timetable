@@ -1,1 +1,44 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Day Planner</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎙️ Voice Day Planner</h1>
+        <p class="subtitle">Drücke und halte den Knopf, um deinen Tag zu planen</p>
+        
+        <div class="recording-section">
+            <button id="recordBtn" class="record-button">
+                <span class="mic-icon">🎤</span>
+                <span class="btn-text">Halten zum Sprechen</span>
+            </button>
+            <div id="recordingStatus" class="status hidden">⏺️ Aufnahme läuft...</div>
+            <div id="transcript" class="transcript hidden"></div>
+        </div>
 
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>KI analysiert deinen Plan...</p>
+        </div>
+
+        <div id="timetable" class="timetable hidden">
+            <h2>Dein Tagesplan</h2>
+            <div id="dateDisplay" class="date-display"></div>
+            <div id="eventsList" class="events-list"></div>
+            <div class="actions">
+                <button id="editBtn" class="btn-secondary">Bearbeiten</button>
+                <button id="newPlanBtn" class="btn-primary">Neuer Plan</button>
+            </div>
+        </div>
+
+        <div id="error" class="error hidden"></div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
