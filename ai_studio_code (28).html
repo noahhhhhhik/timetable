@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BoldStep - 30 Tage Challenge</title>
+    
+    <!-- Tailwind CSS für das Apple-Design laden -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Confetti-Animation laden -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        /* Apple System-Schriftarten erzwingen */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #F5F5F7; /* Apple Standard-Hintergrund */
+            color: #1D1D1F;
+            -webkit-font-smoothing: antialiased;
+            overscroll-behavior: none;
+        }
+        
+        /* Sanfte Animationen */
+        .apple-card {
+            box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+            transition: transform 0.2s ease, opacity 0.5s ease;
+        }
+        .apple-button {
+            transition: all 0.2s ease;
+        }
+        .apple-button:active {
+            transform: scale(0.96);
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col items-center p-6 select-none">
+
+    <!-- Header mit Streak -->
+    <header class="w-full max-w-md flex justify-between items-center py-8">
+        <h1 class="text-2xl font-bold tracking-tight italic text-gray-800">BoldStep</h1>
+        <div class="bg-white/80 backdrop-blur-md px-4 py-2 rounded-full shadow-sm border border-gray-100 flex items-center gap-2">
+            <span class="text-orange-500 text-lg">🔥</span>
+            <span id="streak-counter" class="font-bold text-gray-800">0</span>
+        </div>
+    </header>
+
+    <!-- Main Card -->
+    <main class="w-full max-w-md mt-4">
+        <div class="apple-card bg-white rounded-[2.5rem] p-8 border border-white relative overflow-hidden">
+            
+            <span id="day-badge" class="text-[#007AFF] text-[11px] font-black uppercase tracking-[0.2em] mb-4 block">
+                Tag 1 von 30
+            </span>
+            
+            <h2 id="task-text" class="text-3xl font-bold leading-tight mb-10 tracking-tight text-gray-900">
+                Lade deine Aufgabe...
+            </h2>
+
+            <!-- Button für Aufgabe erledigt -->
+            <button id="complete-btn" onclick="completeTask()" class="apple-button w-full bg-[#007AFF] text-white py-5 rounded-2xl font-semibold text-lg shadow-lg shadow-blue-200/50">
+                Aufgabe erledigt
+            </button>
+
+            <!-- Erfolgsnachricht (versteckt am Anfang) -->
+            <div id="success-msg" class="hidden text-center py-2 flex flex-col items-center gap-2">
+                <div class="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-2">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                </div>
+                <p class="font-semibold text-xl">Hervorragend!</p>
+                <p class="text-gray-500 text-sm">Bis morgen zur nächsten Stufe.</p>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        // Die 30 Aufgaben (steigende Schwierigkeit)
+        const tasks = [
+            "Blicke 3 Fremden kurz in die Augen und lächle.",
+            "Frage jemanden nach der Uhrzeit.",
+            "Halte jemandem aktiv die Tür auf und sage 'Gerne'.",
+            "Frage in einem Laden nach einem Produkt, das du eigentlich kennst.",
+            "Wünsche einem Kassierer einen schönen Feierabend.",
+            "Gib einer fremden Person ein kurzes, ehrliches Kompliment.",
+            "Bestelle ein Getränk und nenne proaktiv deinen Namen.",
+            "Frage in einem Café: 'Was können Sie heute empfehlen?'",
+            "Lasse jemanden an der Kasse vor dir einchecken.",
+            "Setze dich für 10 Minuten allein in ein belebtes Café.",
+            "Frage einen Passanten nach dem Weg zu einem bekannten Ort.",
+            "Telefoniere kurz in der Öffentlichkeit (Bus/Bahn).",
+            "Frage im Restaurant höflich nach einem anderen Tisch.",
+            "Mache Smalltalk mit einem Nachbarn über das Wetter.",
+            "Singe oder summe leise ein Lied, während du läufst.",
+            "Frage in einer Buchhandlung nach einer persönlichen Empfehlung.",
+            "Kaufe etwas Kleines und bringe es zurück (Reklamation üben).",
+            "Lass dich in einem Geschäft beraten, ohne etwas zu kaufen.",
+            "Frage in der Bahn: 'Entschuldigung, ist dieser Platz noch frei?'",
+            "Setze dich ganz nach vorne bei einer Veranstaltung oder im Bus.",
+            "Teile eine eigene Meinung in einer kleinen Gruppe höflich mit.",
+            "Bestelle etwas im Restaurant mit einer kleinen Änderung (Extrawurst).",
+            "Rufe ein Geschäft an und frage nach den Öffnungszeiten.",
+            "Erzähle einem Bekannten von deiner 30-Tage-Challenge.",
+            "Halte im Gespräch eine Pause von 3 Sekunden aus.",
+            "Starte ein Gespräch mit: 'Hey, cooles Shirt, woher ist das?'",
+            "Frage in einem Café nach einem Gratis-Glas Leitungswasser.",
+            "Sprich jemanden an: 'Wissen Sie, ob der Bus Verspätung hat?'",
+            "Erzähle einem Fremden eine kurze, lustige Beobachtung.",
+            "Finale: Führe ein 5-minütiges Gespräch mit einer völlig fremden Person."
+        ];
+
+        // Daten aus dem lokalen Speicher laden oder Standardwerte setzen
+        let appData = JSON.parse(localStorage.getItem('boldstep_data')) || {
+            day: 1,
+            streak: 0,
+            lastDate: null
+        };
+
+        const todayDateStr = new Date().toDateString();
+
+        function initApp() {
+            // Streak Logik: Prüfen ob ein Tag verpasst wurde
+            if (appData.lastDate) {
+                const today = new Date().setHours(0,0,0,0);
+                const lastDate = new Date(appData.lastDate).setHours(0,0,0,0);
+                const diffTime = Math.abs(today - lastDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                // Wenn mehr als 1 Tag vergangen ist, Streak auf 0 setzen
+                if (diffDays > 1) {
+                    appData.streak = 0;
+                    saveData();
+                }
+            }
+
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('streak-counter').innerText = appData.streak;
+            
+            // Wenn 30 Tage geschafft sind
+            if (appData.day > 30) {
+                document.getElementById('day-badge').innerText = "GESCHAFFT";
+                document.getElementById('task-text').innerText = "Herzlichen Glückwunsch! Du hast die 30 Tage abgeschlossen.";
+                document.getElementById('complete-btn').classList.add('hidden');
+                return;
+            }
+
+            document.getElementById('day-badge').innerText = `Tag ${appData.day} von 30`;
+            document.getElementById('task-text').innerText = tasks[appData.day - 1];
+
+            // Prüfen, ob heute schon erledigt wurde
+            if (appData.lastDate === todayDateStr) {
+                document.getElementById('complete-btn').classList.add('hidden');
+                document.getElementById('success-msg').classList.remove('hidden');
+            }
+        }
+
+        function completeTask() {
+            // Aufgabe als erledigt markieren
+            appData.streak += 1;
+            appData.day += 1;
+            appData.lastDate = todayDateStr;
+            
+            saveData();
+            
+            // Konfetti Animation
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#007AFF', '#34C759', '#FFCC00']
+            });
+
+            // UI anpassen
+            document.getElementById('complete-btn').classList.add('hidden');
+            document.getElementById('success-msg').classList.remove('hidden');
+        }
+
+        function saveData() {
+            localStorage.setItem('boldstep_data', JSON.stringify(appData));
+        }
+
+        // App beim Laden starten
+        initApp();
+    </script>
+</body>
+</html>
